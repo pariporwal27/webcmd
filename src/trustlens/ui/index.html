@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrustLens — See Beyond the Website | AI Autonomous Web Investigator</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: rgba(23, 32, 54, 0.7);
+      --card-border: rgba(56, 189, 248, 0.15);
+      --accent: #38bdf8;
+      --accent-hover: #0ea5e9;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: radial-gradient(circle at 50% 0%, #172554 0%, var(--bg) 70%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 1.25rem 2rem;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(11, 15, 25, 0.85);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .brand-logo {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, var(--accent), #6366f1);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+    }
+    .brand-name {
+      font-size: 1.3rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(90deg, #fff, #bae6fd);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .brand-tagline {
+      font-size: 0.8rem;
+      color: var(--accent);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    nav {
+      display: flex;
+      gap: 0.5rem;
+      background: rgba(255,255,255,0.05);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .nav-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.5rem 1rem;
+      border-radius: 7px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.88rem;
+      transition: all 0.2s;
+    }
+    .nav-btn:hover { color: var(--text); background: rgba(255,255,255,0.06); }
+    .nav-btn.active {
+      background: var(--accent);
+      color: #0b0f19;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
+    }
+
+    main {
+      flex: 1;
+      max-width: 1280px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .view-section { display: none; }
+    .view-section.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Dashboard & Input */
+    .hero {
+      text-align: center;
+      margin: 1.5rem 0 2.5rem;
+    }
+    .hero h1 {
+      font-size: 2.6rem;
+      font-weight: 800;
+      margin-bottom: 0.6rem;
+      letter-spacing: -0.5px;
+    }
+    .hero p {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      max-width: 650px;
+      margin: 0 auto;
+    }
+
+    .search-container {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.75rem;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      margin-bottom: 2.5rem;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 0.75rem;
+    }
+    .url-input {
+      flex: 1;
+      background: rgba(11, 15, 25, 0.8);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      color: #fff;
+      font-size: 1rem;
+      font-family: var(--font-mono);
+      outline: none;
+      transition: border 0.2s, box-shadow 0.2s;
+    }
+    .url-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+    }
+    .category-select {
+      background: rgba(11, 15, 25, 0.8);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      padding: 0 1rem;
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 600;
+      outline: none;
+    }
+    .btn-submit {
+      background: linear-gradient(135deg, var(--accent), #0284c7);
+      border: none;
+      color: #0b0f19;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0 1.8rem;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+    }
+    .btn-submit:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+    }
+
+    /* Scenarios Cards */
+    .scenarios-heading {
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent);
+      margin-bottom: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .scenario-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+    .scenario-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 1.25rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .scenario-card:hover {
+      background: rgba(56, 189, 248, 0.05);
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .scenario-badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      margin-bottom: 0.6rem;
+      text-transform: uppercase;
+    }
+    .badge-legitimate { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+    .badge-scam { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .badge-suspicious { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .scenario-title { font-size: 1rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .scenario-desc { font-size: 0.83rem; color: var(--text-muted); line-height: 1.4; }
+
+    /* Progress Banner */
+    .investigation-banner {
+      display: none;
+      background: rgba(14, 165, 233, 0.1);
+      border: 1px solid var(--accent);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .banner-top {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.6rem;
+      font-weight: 600;
+    }
+    .progress-bar {
+      height: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), #6366f1);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* Results View */
+    .results-grid {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .score-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 2rem;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .score-dial {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 1rem 0;
+      position: relative;
+      background: conic-gradient(var(--accent) var(--score-angle, 0deg), rgba(255,255,255,0.1) 0deg);
+    }
+    .score-dial-inner {
+      width: 126px;
+      height: 126px;
+      background: var(--bg);
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .score-number { font-size: 2.8rem; font-weight: 800; font-family: var(--font-mono); }
+    .score-max { font-size: 0.8rem; color: var(--text-muted); }
+    .risk-badge {
+      font-size: 0.9rem;
+      font-weight: 800;
+      padding: 6px 16px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 0.5rem;
+    }
+
+    .recommendation-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.75rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .rec-header { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); font-weight: 700; margin-bottom: 0.5rem; }
+    .rec-body { font-size: 1.25rem; font-weight: 600; line-height: 1.5; margin-bottom: 1rem; }
+    
+    .breakdown-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.88rem;
+    }
+    .breakdown-table th, .breakdown-table td {
+      padding: 8px 12px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .breakdown-table th { color: var(--text-muted); font-size: 0.78rem; text-transform: uppercase; }
+
+    .signals-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    .signals-box {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.5rem;
+    }
+    .signals-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .signal-item {
+      padding: 0.85rem 1rem;
+      background: rgba(255,255,255,0.03);
+      border-radius: 8px;
+      margin-bottom: 0.6rem;
+      border-left: 3px solid transparent;
+      font-size: 0.9rem;
+    }
+    .signal-item.positive { border-color: var(--success); }
+    .signal-item.warning { border-color: var(--warning); }
+    .signal-item.critical { border-color: var(--danger); background: rgba(239, 68, 68, 0.08); }
+    .signal-header { font-weight: 700; margin-bottom: 0.2rem; }
+    .signal-detail { color: var(--text-muted); font-size: 0.83rem; line-height: 1.4; }
+
+    /* Evidence Viewer */
+    .evidence-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      padding-bottom: 0.5rem;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .tab-btn.active { background: rgba(255,255,255,0.1); color: var(--text); }
+    .evidence-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .evidence-row {
+      display: flex;
+      padding: 0.7rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .evidence-label { width: 220px; font-weight: 600; color: var(--text-muted); font-size: 0.88rem; }
+    .evidence-value { flex: 1; font-family: var(--font-mono); font-size: 0.88rem; word-break: break-all; }
+
+    /* Agent Logs */
+    .logs-terminal {
+      background: #060911;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      padding: 1.25rem;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      max-height: 600px;
+      overflow-y: auto;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.6);
+    }
+    .log-line {
+      display: flex;
+      gap: 0.75rem;
+      padding: 0.4rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      line-height: 1.4;
+    }
+    .log-time { color: #64748b; min-width: 70px; }
+    .log-step { color: var(--accent); font-weight: 600; min-width: 190px; }
+    .log-status { font-weight: 700; min-width: 80px; text-transform: uppercase; font-size: 0.75rem; }
+    .status-info { color: var(--text-muted); }
+    .status-success { color: var(--success); }
+    .status-warn { color: var(--warning); }
+    .status-error { color: var(--danger); }
+    .status-recovery { color: #a855f7; font-weight: 800; }
+    .log-detail { flex: 1; color: #e2e8f0; }
+
+    footer {
+      padding: 1.5rem 2rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-logo">🔍</div>
+      <div>
+        <div class="brand-name">TrustLens</div>
+        <div class="brand-tagline">See Beyond the Website</div>
+      </div>
+    </div>
+    <nav>
+      <button class="nav-btn active" onclick="switchView('dashboard')">1. Dashboard</button>
+      <button class="nav-btn" onclick="switchView('results')">2. Results</button>
+      <button class="nav-btn" onclick="switchView('evidence')">3. Evidence</button>
+      <button class="nav-btn" onclick="switchView('logs')">4. Agent Logs</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- View 1: Dashboard -->
+    <section id="view-dashboard" class="view-section active">
+      <div class="hero">
+        <h1>Autonomous Web Legitimacy & Fraud Investigator</h1>
+        <p>Investigates websites, job opportunities, e-commerce stores, and scholarships using real browser inspection and cross-source verification.</p>
+      </div>
+
+      <div class="search-container">
+        <form id="investigate-form" onsubmit="handleInvestigate(event)">
+          <div class="input-row">
+            <input type="url" id="url-input" class="url-input" placeholder="Enter target website, job posting, or store URL (https://...)" required />
+            <select id="category-select" class="category-select">
+              <option value="auto">Auto-Detect</option>
+              <option value="job_internship">Job / Internship</option>
+              <option value="ecommerce">E-Commerce Store</option>
+              <option value="startup_service">Startup / Service</option>
+              <option value="scholarship">Scholarship / Grant</option>
+            </select>
+            <button type="submit" class="btn-submit" id="btn-submit">
+              <span>Investigate</span>
+              <span>→</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div id="investigation-banner" class="investigation-banner">
+        <div class="banner-top">
+          <span id="banner-status">Agent navigating to target website...</span>
+          <span id="banner-step">Step 1 of 10</span>
+        </div>
+        <div class="progress-bar">
+          <div id="progress-fill" class="progress-fill"></div>
+        </div>
+      </div>
+
+      <div class="scenarios-heading">
+        <span>⚡</span>
+        <span>One-Click Hackathon Evaluation Scenarios (Preloaded Real-World Evidence)</span>
+      </div>
+      <div class="scenario-grid" id="scenarios-container">
+        <!-- Injected via JS -->
+      </div>
+    </section>
+
+    <!-- View 2: Results -->
+    <section id="view-results" class="view-section">
+      <div class="results-grid">
+        <div class="score-card">
+          <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Trust Score</div>
+          <div class="score-dial" id="score-dial">
+            <div class="score-dial-inner">
+              <span class="score-number" id="res-score">--</span>
+              <span class="score-max">/ 100</span>
+            </div>
+          </div>
+          <div class="risk-badge" id="res-risk-badge">Analyzing...</div>
+          <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-muted);" id="res-url-label">--</div>
+        </div>
+
+        <div class="recommendation-card">
+          <div>
+            <div class="rec-header">Executive Recommendation</div>
+            <div class="rec-body" id="res-recommendation">Run an investigation or select a scenario to view results.</div>
+          </div>
+          <table class="breakdown-table">
+            <thead>
+              <tr><th>Dimension</th><th>Score</th><th>Max</th><th>Status</th></tr>
+            </thead>
+            <tbody id="breakdown-tbody">
+              <!-- Injected via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="signals-container">
+        <div class="signals-box">
+          <div class="signals-title" style="color: var(--success);">
+            <span>✓</span>
+            <span>Positive Signals (<span id="count-positives">0</span>)</span>
+          </div>
+          <div id="positives-list"></div>
+        </div>
+
+        <div class="signals-box">
+          <div class="signals-title" style="color: var(--danger);">
+            <span>⚠</span>
+            <span>Warnings & Red Flags (<span id="count-warnings">0</span>)</span>
+          </div>
+          <div id="warnings-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- View 3: Evidence Viewer -->
+    <section id="view-evidence" class="view-section">
+      <div class="evidence-tabs">
+        <button class="tab-btn active" onclick="switchEvidenceTab('identity')">Organization & Identity</button>
+        <button class="tab-btn" onclick="switchEvidenceTab('contact')">Contact Channels</button>
+        <button class="tab-btn" onclick="switchEvidenceTab('social')">Social Presence</button>
+        <button class="tab-btn" onclick="switchEvidenceTab('reputation')">Reviews & Complaints</button>
+      </div>
+
+      <div id="evidence-content" class="evidence-card">
+        <!-- Injected via JS -->
+      </div>
+    </section>
+
+    <!-- View 4: Agent Logs -->
+    <section id="view-logs" class="view-section">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2 style="font-size: 1.2rem; font-weight: 700;">Live Browser Agent Trace & Recovery Log</h2>
+        <span style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);" id="log-count">0 steps recorded</span>
+      </div>
+      <div class="logs-terminal" id="logs-container">
+        <!-- Injected via JS -->
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    TrustLens • Built on Webcmd Browser Automation Framework • Hackathon Demo Edition 2026
+  </footer>
+
+  <script>
+    let currentReport = null;
+    let currentScenarios = [];
+    let activeEvidenceTab = 'identity';
+
+    async function init() {
+      try {
+        const res = await fetch('/api/scenarios');
+        currentScenarios = await res.json();
+        renderScenarios();
+      } catch (err) {
+        console.error('Failed to load scenarios:', err);
+      }
+    }
+
+    function switchView(viewName) {
+      document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+      
+      const target = document.getElementById('view-' + viewName);
+      if (target) target.classList.add('active');
+      
+      const btnIndex = viewName === 'dashboard' ? 0 : (viewName === 'results' ? 1 : (viewName === 'evidence' ? 2 : 3));
+      document.querySelectorAll('.nav-btn')[btnIndex]?.classList.add('active');
+    }
+
+    function renderScenarios() {
+      const container = document.getElementById('scenarios-container');
+      container.innerHTML = currentScenarios.map(s => `
+        <div class="scenario-card" onclick="loadScenario('${s.id}')">
+          <span class="scenario-badge badge-${s.targetProfile}">${s.targetProfile}</span>
+          <div class="scenario-title">${s.name}</div>
+          <div class="scenario-desc">${s.tagline}</div>
+        </div>
+      `).join('');
+    }
+
+    async function loadScenario(id) {
+      const scenario = currentScenarios.find(s => s.id === id);
+      if (!scenario) return;
+      document.getElementById('url-input').value = scenario.url;
+      document.getElementById('category-select').value = scenario.category;
+      await runInvestigation(scenario.url, scenario.category);
+    }
+
+    async function handleInvestigate(e) {
+      e.preventDefault();
+      const url = document.getElementById('url-input').value;
+      const category = document.getElementById('category-select').value;
+      await runInvestigation(url, category);
+    }
+
+    async function runInvestigation(url, category) {
+      const banner = document.getElementById('investigation-banner');
+      const progressFill = document.getElementById('progress-fill');
+      const bannerStatus = document.getElementById('banner-status');
+      const bannerStep = document.getElementById('banner-step');
+      const btnSubmit = document.getElementById('btn-submit');
+
+      banner.style.display = 'block';
+      btnSubmit.disabled = true;
+      progressFill.style.width = '10%';
+      bannerStatus.innerText = 'Initializing autonomous browser agent...';
+
+      // Animate progress simulation
+      let progress = 15;
+      const interval = setInterval(() => {
+        if (progress < 90) {
+          progress += Math.floor(Math.random() * 15) + 5;
+          progressFill.style.width = Math.min(progress, 90) + '%';
+          const stepIdx = Math.min(10, Math.floor(progress / 9) + 1);
+          bannerStep.innerText = `Step ${stepIdx} of 10`;
+          const steps = [
+            'Visiting target website...',
+            'Auditing DOM & removing popups...',
+            'Extracting legal & company identity...',
+            'Verifying contact email & address...',
+            'Checking social links for dummy tokens...',
+            'Searching external directories...',
+            'Querying customer reviews & sentiment...',
+            'Screening scam & fraud databases...',
+            'Assessing UX urgency indicators...',
+            'Calculating transparent trust score...'
+          ];
+          bannerStatus.innerText = steps[stepIdx - 1] || 'Synthesizing report...';
+        }
+      }, 400);
+
+      try {
+        const res = await fetch('/api/investigate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url, category }),
+        });
+        const report = await res.json();
+        clearInterval(interval);
+        progressFill.style.width = '100%';
+        bannerStatus.innerText = 'Investigation complete!';
+        setTimeout(() => {
+          banner.style.display = 'none';
+          btnSubmit.disabled = false;
+          displayReport(report);
+          switchView('results');
+        }, 500);
+      } catch (err) {
+        clearInterval(interval);
+        bannerStatus.innerText = 'Error running investigation: ' + err.message;
+        btnSubmit.disabled = false;
+      }
+    }
+
+    function displayReport(report) {
+      currentReport = report;
+
+      // Score Dial
+      const score = report.trustScore;
+      document.getElementById('res-score').innerText = score;
+      document.getElementById('res-url-label').innerText = report.targetUrl;
+      
+      const badge = document.getElementById('res-risk-badge');
+      badge.innerText = report.riskLevel;
+      badge.className = 'risk-badge ' + (report.riskLevel === 'Low Risk' ? 'badge-legitimate' : (report.riskLevel === 'Medium Risk' ? 'badge-suspicious' : 'badge-scam'));
+
+      const angle = Math.round((score / 100) * 360);
+      const color = score >= 75 ? 'var(--success)' : (score >= 45 ? 'var(--warning)' : 'var(--danger)');
+      document.getElementById('score-dial').style.background = `conic-gradient(${color} ${angle}deg, rgba(255,255,255,0.08) 0deg)`;
+
+      // Recommendation
+      document.getElementById('res-recommendation').innerText = report.recommendation;
+
+      // Breakdown table
+      const b = report.scoreBreakdown;
+      document.getElementById('breakdown-tbody').innerHTML = `
+        <tr><td>Identity & Transparency</td><td><b>${b.identityScore}</b></td><td>25</td><td>${report.evidence.identity.companyName || 'Not Stated'}</td></tr>
+        <tr><td>Domain & Security</td><td><b>${b.domainSecurityScore}</b></td><td>20</td><td>${report.evidence.identity.sslValid ? 'SSL Active' : 'Insecure'}</td></tr>
+        <tr><td>Social & Footprint</td><td><b>${b.socialPresenceScore}</b></td><td>20</td><td>${report.evidence.social.platformsFound.length} Verified Channels</td></tr>
+        <tr><td>Reputation & Reviews</td><td><b>${b.reputationScore}</b></td><td>20</td><td>${report.evidence.reputation.reviews.length} Sources Checked</td></tr>
+        <tr><td>Business Policies</td><td><b>${b.businessPracticeScore}</b></td><td>15</td><td>${report.evidence.identity.hasPrivacyPolicy ? 'Disclosures Present' : 'Missing'}</td></tr>
+        <tr style="color: var(--danger);"><td>Risk Penalties</td><td><b>-${b.riskPenalties}</b></td><td>--</td><td>${report.warnings.length} Active Warnings</td></tr>
+      `;
+
+      // Positives & Warnings
+      document.getElementById('count-positives').innerText = report.positiveSignals.length;
+      document.getElementById('positives-list').innerHTML = report.positiveSignals.map(p => `
+        <div class="signal-item positive">
+          <div class="signal-header">✓ ${p.title}</div>
+          <div class="signal-detail">${p.detail}</div>
+        </div>
+      `).join('') || '<div style="color: var(--text-muted); font-size: 0.85rem;">None identified</div>';
+
+      document.getElementById('count-warnings').innerText = report.warnings.length;
+      document.getElementById('warnings-list').innerHTML = report.warnings.map(w => `
+        <div class="signal-item ${w.severity}">
+          <div class="signal-header">⚠ [${w.category}] ${w.title}</div>
+          <div class="signal-detail">${w.detail}</div>
+        </div>
+      `).join('') || '<div style="color: var(--text-muted); font-size: 0.85rem;">Zero risk signals detected</div>';
+
+      renderEvidenceTab();
+      renderLogs();
+    }
+
+    function switchEvidenceTab(tab) {
+      activeEvidenceTab = tab;
+      document.querySelectorAll('.tab-btn').forEach((b, i) => {
+        b.classList.toggle('active', (tab === 'identity' && i === 0) || (tab === 'contact' && i === 1) || (tab === 'social' && i === 2) || (tab === 'reputation' && i === 3));
+      });
+      renderEvidenceTab();
+    }
+
+    function renderEvidenceTab() {
+      if (!currentReport) return;
+      const c = document.getElementById('evidence-content');
+      const e = currentReport.evidence;
+
+      if (activeEvidenceTab === 'identity') {
+        c.innerHTML = `
+          <div class="evidence-row"><span class="evidence-label">Company / Entity</span><span class="evidence-value">${e.identity.companyName || 'Not Stated'}</span></div>
+          <div class="evidence-row"><span class="evidence-label">Domain Name</span><span class="evidence-value">${e.identity.domain}</span></div>
+          <div class="evidence-row"><span class="evidence-label">SSL Encryption</span><span class="evidence-value">${e.identity.sslValid ? '✓ Valid HTTPS (TLS Certificate Verified)' : '✗ Insecure HTTP'}</span></div>
+          <div class="evidence-row"><span class="evidence-label">Domain Age</span><span class="evidence-value">${e.identity.domainAgeYears ? e.identity.domainAgeYears + ' years' : 'Unknown'}</span></div>
+          <div class="evidence-row"><span class="evidence-label">Claimed Address</span><span class="evidence-value">${e.identity.claimedAddress || 'None specified'}</span></div>
+          <div class="evidence-row"><span class="evidence-label">Privacy Policy</span><span class="evidence-value">${e.identity.hasPrivacyPolicy ? '✓ Published on site' : '✗ Missing'}</span></div>
+          <div class="evidence-row"><span class="evidence-label">Terms of Service</span><span class="evidence-value">${e.identity.hasTermsOfService ? '✓ Published on site' : '✗ Missing'}</span></div>
+        `;
+      } else if (activeEvidenceTab === 'contact') {
+        c.innerHTML = `
+          <div class="evidence-row"><span class="evidence-label">Authenticated Domain Emails</span><span class="evidence-value">${e.contact.domainMatchingEmails.join(', ') || 'None found'}</span></div>
+          <div class="evidence-row"><span class="evidence-label">Generic Webmail Emails</span><span class="evidence-value" style="color: ${e.contact.freeMailEmails.length ? 'var(--warning)' : 'inherit'}">${e.contact.freeMailEmails.join(', ') || 'None (Clean)'}</span></div>
+          <div class="evidence-row"><span class="evidence-label">Phone Numbers</span><span class="evidence-value">${e.contact.phoneNumbers.join(', ') || 'None listed'}</span></div>
+          <div class="evidence-row"><span class="evidence-label">Physical Addresses</span><span class="evidence-value">${e.contact.addresses.join(' | ') || 'None listed'}</span></div>
+          <div class="evidence-row"><span class="evidence-label">Contact Channels Active</span><span class="evidence-value">${e.contact.contactChannels.join(', ') || 'None'}</span></div>
+        `;
+      } else if (activeEvidenceTab === 'social') {
+        c.innerHTML = `
+          <div class="evidence-row"><span class="evidence-label">Verified Active Platforms</span><span class="evidence-value">${e.social.platformsFound.join(', ') || 'None found'}</span></div>
+          <div class="evidence-row"><span class="evidence-label">Dummy / Dead Links Detected</span><span class="evidence-value" style="color: ${e.social.dummyLinksCount ? 'var(--danger)' : 'inherit'}">${e.social.dummyLinksCount} placeholder links (#)</span></div>
+          <div class="evidence-row"><span class="evidence-label">Social Media Outbound Links</span><span class="evidence-value">${e.social.links.map(l => `<a href="${l.url}" target="_blank" style="color: var(--accent); display: block; margin-bottom: 4px;">${l.platform}: ${l.url} ${l.isDummy ? '<span style="color: var(--danger)">[DUMMY]</span>' : ''}</a>`).join('') || 'None'}</span></div>
+        `;
+      } else if (activeEvidenceTab === 'reputation') {
+        c.innerHTML = `
+          <div class="evidence-row"><span class="evidence-label">Consumer Scam Reports</span><span class="evidence-value" style="color: ${e.reputation.scamReports.length ? 'var(--danger)' : 'inherit'}">${e.reputation.scamReports.join('<br>') || 'Zero active consumer fraud reports'}</span></div>
+          <div class="evidence-row"><span class="evidence-label">Overall Sentiment</span><span class="evidence-value">${e.reputation.overallSentiment.toUpperCase()}</span></div>
+          <div class="evidence-row"><span class="evidence-label">External Reviews Found</span><span class="evidence-value">${e.reputation.reviews.map(r => `<div style="margin-bottom: 8px;"><b>${r.platform}</b>: ${r.summary} ${r.rating ? `(${r.rating}/${r.maxRating})` : ''}</div>`).join('') || 'Limited external review mentions'}</span></div>
+        `;
+      }
+    }
+
+    function renderLogs() {
+      if (!currentReport) return;
+      document.getElementById('log-count').innerText = `${currentReport.logs.length} steps executed`;
+      document.getElementById('logs-container').innerHTML = currentReport.logs.map(l => `
+        <div class="log-line">
+          <span class="log-time">${l.timestamp}</span>
+          <span class="log-step">${l.stepName}</span>
+          <span class="log-status status-${l.status}">[${l.status}]</span>
+          <span class="log-detail">${l.detail}</span>
+        </div>
+      `).join('');
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>

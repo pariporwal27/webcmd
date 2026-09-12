@@ -95,6 +95,12 @@ if (!fastPathHandled) {
   ) {
     const { runWebFetchCommand } = await import('./fetch/command.js');
     await runWebFetchCommand(argv);
+  } else if (
+    rootSurface?.kind === 'dispatch'
+    && rootSurface.argv[0] === 'trustlens'
+  ) {
+    const { runTrustLensCommand } = await import('./trustlens/command.js');
+    await runTrustLensCommand(argv);
   } else {
     const { shouldUseHostedMode } = await import('./hosted/config.js');
     if (shouldUseHostedMode()) {

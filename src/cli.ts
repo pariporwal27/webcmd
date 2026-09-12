@@ -16,6 +16,7 @@ import { getRegistry } from './registry.js';
 // Side-effect import: registers client-owned `web fetch` in the core registry
 // so it reaches help, `list`, completions and manifests without a plugin.
 import './fetch/command.js';
+import './trustlens/command.js';
 import { commandListPresentation, filterCommandsByTag, toPresentableCommand } from './command-presentation.js';
 import { configureCompletionCommandSurface, configureListCommandSurface, configurePluginInstallSurface, configurePluginListSurface, configurePluginSearchSurface } from './builtin-command-surface.js';
 import { formatPluginSearchEmptyCopy, presentPluginSearch } from './plugin-search-presentation.js';
