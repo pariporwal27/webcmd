@@ -259,7 +259,10 @@ export async function scanClisDir(
  * commands. It must stay listed in package.json `exports`, which
  * `package-exports.test.ts` verifies resolves to a real source file.
  */
-const CORE_SITE_EXPORTS = new Map([['web', './fetch/command']]);
+const CORE_SITE_EXPORTS = new Map([
+  ['web', './fetch/command'],
+  ['trustlens', './trustlens/command']
+]);
 
 /**
  * Manifest entries for core-registered commands.
@@ -274,6 +277,7 @@ export async function coreCommandEntries(
   importer: (moduleHref: string) => Promise<unknown> = moduleHref => import(moduleHref),
 ): Promise<ManifestEntry[]> {
   await importer(pathToFileURL(path.join(PACKAGE_ROOT, 'src/fetch/command.ts')).href);
+  await importer(pathToFileURL(path.join(PACKAGE_ROOT, 'src/trustlens/command.ts')).href);
   return [...getRegistry().values()]
     .filter(cmd => cmd.clientOwned && CORE_SITE_EXPORTS.has(cmd.site))
     .sort((a, b) => a.site.localeCompare(b.site) || a.name.localeCompare(b.name))

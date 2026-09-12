@@ -14,3 +14,10 @@ if (existsSync(extSrc)) {
 const playwrightClient = 'src/browser/run/generated/playwright-client.js';
 mkdirSync('dist/src/browser/run/generated', { recursive: true });
 copyFileSync(playwrightClient, 'dist/src/browser/run/generated/playwright-client.js');
+
+// Copy TrustLens UI to dist/
+const trustlensUI = 'src/trustlens/ui/index.html';
+if (existsSync(trustlensUI)) {
+  mkdirSync('dist/src/trustlens/ui', { recursive: true });
+  copyFileSync(trustlensUI, 'dist/src/trustlens/ui/index.html');
+}

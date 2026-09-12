@@ -1,5 +1,75 @@
 [
   {
+    "site": "trustlens",
+    "name": "demo",
+    "description": "Run automated demo scenarios for hackathon evaluation.",
+    "access": "read",
+    "example": "webcmd trustlens demo",
+    "strategy": "public",
+    "browser": false,
+    "args": [],
+    "type": "js",
+    "clientOwned": true,
+    "packageExport": "./trustlens/command"
+  },
+  {
+    "site": "trustlens",
+    "name": "investigate",
+    "description": "Autonomously investigate a website, job posting, e-commerce store, or scholarship for legitimacy and scam signals.",
+    "access": "read",
+    "example": "webcmd trustlens investigate https://example.com --visible -f table",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "url",
+        "type": "string",
+        "required": true,
+        "positional": true,
+        "help": "Target URL to investigate"
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "default": "auto",
+        "required": false,
+        "help": "Investigation category: auto, job_internship, ecommerce, startup_service, scholarship"
+      },
+      {
+        "name": "visible",
+        "type": "boolean",
+        "default": false,
+        "required": false,
+        "help": "Launch an observable, visible browser window during investigation"
+      }
+    ],
+    "defaultFormat": "table",
+    "type": "js",
+    "clientOwned": true,
+    "packageExport": "./trustlens/command"
+  },
+  {
+    "site": "trustlens",
+    "name": "serve",
+    "description": "Launch the interactive TrustLens Web Investigation Dashboard on localhost.",
+    "access": "read",
+    "example": "webcmd trustlens serve --port 3000",
+    "strategy": "public",
+    "browser": false,
+    "args": [
+      {
+        "name": "port",
+        "type": "int",
+        "default": 3000,
+        "required": false,
+        "help": "Local HTTP port to bind dashboard"
+      }
+    ],
+    "type": "js",
+    "clientOwned": true,
+    "packageExport": "./trustlens/command"
+  },
+  {
     "site": "web",
     "name": "fetch",
     "description": "Fetch a URL with local HTTP clients. Use after a blocked, 403, or Cloudflare response; never opens a browser.",
